@@ -1,18 +1,24 @@
 import os
 from asyncio import Lock, sleep
+from dataclasses import dataclass
 from datetime import datetime
 from json import loads
 from time import time
-from typing import Literal
+from typing import Coroutine, Literal
 from urllib.request import urlretrieve
 from uuid import uuid4
 
 from bs4 import BeautifulSoup
+from instagramdl.exceptions import PostUnavailableException
+from instagramdl.post_data import InstagramPost, PostType
 from playwright.async_api import TimeoutError as PlaywrightTimeout
 from playwright.async_api import async_playwright
 
-from instagramdl.exceptions import PostUnavailableException
-from instagramdl.post_data import InstagramPost, PostType
+
+@dataclass
+class Request:
+    url: str
+    callback: Coroutine | None
 
 
 def __get_interaction_stat(
@@ -72,7 +78,7 @@ def __parse_post_data(post_info: dict) -> InstagramPost:
     post_comment_count = __get_interaction_stat(post_interactions, "comments")
 
     post_image_urls = [x.get("url") for x in post_info.get("image")]
-    post_video_urls = [{"url": x.get("contentUrl"), "thumbnail": x.get("thumbnailUrl")}  for x in post_info.get("video")]
+    post_video_urls = [{"url": x.get("contentUrl"), "thumbnail": x.get("thumbnailUrl")} for x in post_info.get("video")]
 
     post_type = PostType.REEL if len(post_video_urls) else PostType.IMAGE
 
@@ -180,10 +186,12 @@ class RequestHandler:
             if self.last_request - time() < self.minimum_request_interval:
                 await sleep(time() - (self.last_request + self.minimum_request_interval))
 
-            post = await get_info(next_request)
+            post = await get_info(next_request.url)
             self.last_request = time()
-            return post
 
-    async def add_request(self, url: str):
+        await next_request.callback(post)
+        return post
+
+    async def add_request(self, url: str, callback: Coroutine | None = None):
         async with self.request_list_mutex:
-            self.request_queue.append(url)
+            self.request_queue.append(Request(url, callback))
