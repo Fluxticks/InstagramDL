@@ -19,6 +19,7 @@ from playwright.async_api import async_playwright
 class Request:
     url: str
     callback: Coroutine | None
+    kwargs: dict
 
 
 def __get_interaction_stat(
@@ -189,9 +190,9 @@ class RequestHandler:
             post = await get_info(next_request.url)
             self.last_request = time()
 
-        await next_request.callback(post)
+        await next_request.callback(post, **next_request.kwargs)
         return post
 
-    async def add_request(self, url: str, callback: Coroutine | None = None):
+    async def add_request(self, url: str, callback: Coroutine | None = None, **kwargs):
         async with self.request_list_mutex:
-            self.request_queue.append(Request(url, callback))
+            self.request_queue.append(Request(url, callback, kwargs))
