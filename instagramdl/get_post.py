@@ -72,7 +72,7 @@ def __parse_post_data(post_info: dict) -> InstagramPost:
     post_comment_count = __get_interaction_stat(post_interactions, "comments")
 
     post_image_urls = [x.get("url") for x in post_info.get("image")]
-    post_video_urls = [x.get("contentUrl") for x in post_info.get("video")]
+    post_video_urls = [{"url": x.get("contentUrl"), "thumbnail": x.get("thumbnailUrl")}  for x in post_info.get("video")]
 
     post_type = PostType.REEL if len(post_video_urls) else PostType.IMAGE
 
@@ -153,8 +153,8 @@ async def get_info(
 
         video_paths = []
         if download_videos:
-            for video_url in post_data.post_video_urls:
-                video_paths.append(__download_video(video_url))
+            for video in post_data.post_video_urls:
+                video_paths.append(__download_video(video.get("url")))
 
         post_data.post_video_files = video_paths
         return post_data
