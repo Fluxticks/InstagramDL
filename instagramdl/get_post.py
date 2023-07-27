@@ -190,7 +190,8 @@ class RequestHandler:
             post = await get_info(next_request.url)
             self.last_request = time()
 
-        await next_request.callback(post, **next_request.kwargs)
+        if next_request.callback is not None:
+            await next_request.callback(post, **next_request.kwargs)
         return post
 
     async def add_request(self, url: str, callback: Coroutine | None = None, **kwargs):
