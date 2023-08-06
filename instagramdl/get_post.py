@@ -170,7 +170,7 @@ async def get_info(
 class RequestHandler:
 
     def __init__(self, minimum_request_interval: float = 5):
-        self.last_request = time() - 10
+        self.last_request = time() - 2 * minimum_request_interval
         self.minimum_request_interval = minimum_request_interval
         self.request_list_mutex = Lock()
         self.active_request_mutex = Lock()
