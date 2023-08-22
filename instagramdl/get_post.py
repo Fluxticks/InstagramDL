@@ -20,6 +20,41 @@ class Request:
     kwargs: dict
 
 
+def __get_slideshow_content(post_info: dict) -> tuple[list[str], list[str]]:
+    content = post_info.get("edge_sidecar_to_children").get("edges")
+    image_urls = []
+    video_urls = []
+    for item in content:
+        item_info = item.get("node")
+        item_type = __get_post_type(item_info.get("__typename"))
+        if item_type == PostType.IMAGE:
+            image_urls += __get_image_content(item_info)
+        elif item_type == PostType.REEL:
+            video_urls += __get_video_content(item_info)
+
+    return image_urls, video_urls
+
+
+def __get_image_content(post_info: dict) -> list[str]:
+    image_url = post_info.get("display_url")
+    return [image_url]
+
+
+def __get_video_content(post_info: dict) -> list[str]:
+    video_url = post_info.get("video_url")
+    return [video_url]
+
+
+def __get_post_type(typename: str):
+    match typename:
+        case "GraphSidecar":
+            return PostType.SLIDES
+        case "GraphVideo":
+            return PostType.REEL
+        case "GraphImage":
+            return PostType.IMAGE
+
+
 def __parse_post_data(post_info: dict) -> InstagramPost:
     author_data = post_info.get("owner")
 
@@ -38,14 +73,16 @@ def __parse_post_data(post_info: dict) -> InstagramPost:
     post_like_count = post_info.get("edge_media_preview_like").get("count")
     post_comment_count = post_info.get("edge_media_preview_comment").get("count")
 
-    post_type = None
-    match post_info.get("__typename"):
-        case "GraphSidecar":
-            post_type = PostType.SLIDES
-        case "GraphVideo":
-            post_type = PostType.REEL
-        case "GraphImage":
-            post_type = PostType.IMAGE
+    post_type = __get_post_type(post_info.get("__typename"))
+    match post_type:
+        case PostType.SLIDES:
+            post_image_urls, post_video_urls = __get_slideshow_content(post_info)
+        case PostType.REEL:
+            post_image_urls = None
+            post_video_urls = __get_video_content(post_info)
+        case PostType.IMAGE:
+            post_image_urls = __get_image_content(post_info)
+            post_video_urls = None
 
     post_info = InstagramPost(
         author_username=author_username,
@@ -58,7 +95,9 @@ def __parse_post_data(post_info: dict) -> InstagramPost:
         post_description=post_description,
         post_timestamp=post_timestamp,
         post_like_count=post_like_count,
-        post_comment_count=post_comment_count
+        post_comment_count=post_comment_count,
+        post_image_urls=post_image_urls,
+        post_video_urls=post_video_urls
     )
 
     return post_info
@@ -72,7 +111,9 @@ def __download_video(video_url: str) -> str:
     path, _ = urlretrieve(video_url, filename=filename)
     return path
 
-async def __get_info(url: str,
+
+async def __get_info(
+    url: str,
     download_videos: bool = True,
     browser: Literal["firefox",
                      "chromium",
@@ -82,7 +123,7 @@ async def __get_info(url: str,
     timeout: float | None = None,
     headless: bool | None = None,
     slow_mo: float | None = None
-    ) -> dict:
+) -> dict:
     async with async_playwright() as playwright:
         match browser:
             case "firefox":
@@ -113,6 +154,7 @@ async def __get_info(url: str,
         except PlaywrightTimeout:
             return None
 
+
 async def get_info(
     url: str,
     download_videos: bool = True,
@@ -125,11 +167,18 @@ async def get_info(
     headless: bool | None = None,
     slow_mo: float | None = None
 ) -> InstagramPost:
-    post_data = await __get_info(url=url, download_videos=download_videos, browser=browser, timeout=timeout, headless=headless, slow_mo=slow_mo)
+    post_data = await __get_info(
+        url=url,
+        download_videos=download_videos,
+        browser=browser,
+        timeout=timeout,
+        headless=headless,
+        slow_mo=slow_mo
+    )
 
     if not post_data:
         raise PostUnavailableException(url=url)
-    
+
     post = __parse_post_data(post_data)
 
     video_paths = []
