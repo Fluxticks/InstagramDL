@@ -6,6 +6,7 @@ from enum import IntEnum
 class PostType(IntEnum):
     REEL = 0
     IMAGE = 1
+    SLIDES = 2
 
 
 @dataclass()
@@ -14,6 +15,7 @@ class InstagramPost:
     author_display_name: str
     author_avatar_url: str
     author_profile_url: str
+    author_is_verified: bool
     post_url: str
     post_type: PostType
     post_description: str
