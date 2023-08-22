@@ -2,13 +2,11 @@ import os
 from asyncio import Lock, sleep
 from dataclasses import dataclass
 from datetime import datetime
-from json import loads
 from time import time
 from typing import Coroutine, Literal
 from urllib.request import urlretrieve
 from uuid import uuid4
 
-from bs4 import BeautifulSoup
 from instagramdl.exceptions import PostUnavailableException
 from instagramdl.post_data import InstagramPost, PostType
 from playwright.async_api import TimeoutError as PlaywrightTimeout
@@ -22,80 +20,45 @@ class Request:
     kwargs: dict
 
 
-def __get_interaction_stat(
-    interaction_statistics: list[dict],
-    interaction_kind: Literal["likes",
-                              "comments",
-                              "views"]
-) -> int | None:
-    interaction_type_string = ""
-    match interaction_kind:
-        case "likes":
-            interaction_type_string = "http://schema.org/LikeAction"
-        case "comments":
-            interaction_type_string = "https://schema.org/CommentAction"
-        case "views":
-            interaction_type_string = "http://schema.org/WatchAction"
-        case _:
-            return None
-
-    statistic_found = [
-        x.get("userInteractionCount") for x in interaction_statistics if x.get("interactionType") == interaction_type_string
-    ]
-
-    if not statistic_found:
-        return None
-
-    return int(statistic_found[0])
-
-
-def __get_post_info_from_source(page_source: str) -> dict:
-    soup = BeautifulSoup(page_source, "lxml")
-    page_script = soup.find("script", attrs={"type": "application/ld+json"})
-    script_dictionary = loads(page_script.text)
-    if isinstance(script_dictionary, list):
-        script_dictionary = script_dictionary[0]
-
-    return script_dictionary
-
-
 def __parse_post_data(post_info: dict) -> InstagramPost:
-    author_data = post_info.get("author")
+    author_data = post_info.get("owner")
 
-    author_username = author_data.get("alternateName")
-    author_display_name = author_data.get("name")
-    author_avatar_url = author_data.get("image")
-    author_profile_url = author_data.get("url")
+    author_username = author_data.get("username")
+    author_display_name = author_data.get("full_name")
+    author_avatar_url = author_data.get("profile_pic_url")
+    author_profile_url = f"https://www.instagram.com/{author_username}/"
+    author_is_verified = author_data.get("is_verified")
 
-    post_url = post_info.get("mainEntityOfPage").get("@id")
+    post_url = f"https://www.instagram.com/p/{post_info.get('shortcode')}/"
 
-    post_description = post_info.get("articleBody")
-    post_timestamp_string = post_info.get("dateCreated")
-    post_timestamp = datetime.strptime(post_timestamp_string, "%Y-%m-%dT%H:%M:%S%z")
+    post_description = post_info.get("edge_media_to_caption").get("edges")[0].get("node").get("text")
+    post_timestamp_string = post_info.get("taken_at_timestamp")
+    post_timestamp = datetime.fromtimestamp(float(post_timestamp_string))
 
-    post_interactions = post_info.get("interactionStatistic")
+    post_like_count = post_info.get("edge_media_preview_like").get("count")
+    post_comment_count = post_info.get("edge_media_preview_comment").get("count")
 
-    post_like_count = __get_interaction_stat(post_interactions, "likes")
-    post_comment_count = __get_interaction_stat(post_interactions, "comments")
-
-    post_image_urls = [x.get("url") for x in post_info.get("image")]
-    post_video_urls = [{"url": x.get("contentUrl"), "thumbnail": x.get("thumbnailUrl")} for x in post_info.get("video")]
-
-    post_type = PostType.REEL if len(post_video_urls) else PostType.IMAGE
+    post_type = None
+    match post_info.get("__typename"):
+        case "GraphSidecar":
+            post_type = PostType.SLIDES
+        case "GraphVideo":
+            post_type = PostType.REEL
+        case "GraphImage":
+            post_type = PostType.IMAGE
 
     post_info = InstagramPost(
         author_username=author_username,
         author_display_name=author_display_name,
         author_avatar_url=author_avatar_url,
         author_profile_url=author_profile_url,
+        author_is_verified=author_is_verified,
         post_url=post_url,
         post_type=post_type,
         post_description=post_description,
         post_timestamp=post_timestamp,
         post_like_count=post_like_count,
-        post_comment_count=post_comment_count,
-        post_image_urls=post_image_urls,
-        post_video_urls=post_video_urls
+        post_comment_count=post_comment_count
     )
 
     return post_info
@@ -109,18 +72,17 @@ def __download_video(video_url: str) -> str:
     path, _ = urlretrieve(video_url, filename=filename)
     return path
 
-
-async def get_info(
-    url: str,
+async def __get_info(url: str,
     download_videos: bool = True,
     browser: Literal["firefox",
                      "chromium",
                      "chrome",
                      "safari",
                      "webkit"] = "firefox",
+    timeout: float | None = None,
     headless: bool | None = None,
     slow_mo: float | None = None
-) -> InstagramPost:
+    ) -> dict:
     async with async_playwright() as playwright:
         match browser:
             case "firefox":
@@ -141,30 +103,43 @@ async def get_info(
         await browser_context.clear_cookies()
 
         post_page = await browser_context.new_page()
-        await post_page.goto(url, wait_until="networkidle")
+        await post_page.goto(url)
 
         try:
-            decline_button = post_page.get_by_text("Decline optional cookies")
-            await decline_button.click(button="left")
+            async with post_page.expect_response(lambda x: "/graphql/query/" in x.url, timeout=timeout) as response:
+                response = await response.value
+                data = await response.json()
+                return data.get("data").get("shortcode_media")
         except PlaywrightTimeout:
-            pass
+            return None
 
-        post_unavailable = post_page.get_by_text("Sorry, this page isn't available")
-        count = await post_unavailable.count()
-        if count > 0:
-            raise PostUnavailableException(url=url)
+async def get_info(
+    url: str,
+    download_videos: bool = True,
+    browser: Literal["firefox",
+                     "chromium",
+                     "chrome",
+                     "safari",
+                     "webkit"] = "firefox",
+    timeout: float | None = None,
+    headless: bool | None = None,
+    slow_mo: float | None = None
+) -> InstagramPost:
+    post_data = await __get_info(url=url, download_videos=download_videos, browser=browser, timeout=timeout, headless=headless, slow_mo=slow_mo)
 
-        page_content = await post_page.content()
-        raw_post_info = __get_post_info_from_source(page_content)
-        post_data = __parse_post_data(raw_post_info)
+    if not post_data:
+        raise PostUnavailableException(url=url)
+    
+    post = __parse_post_data(post_data)
 
-        video_paths = []
-        if download_videos:
-            for video in post_data.post_video_urls:
-                video_paths.append(__download_video(video.get("url")))
+    video_paths = []
+    if download_videos:
+        for video in post.post_video_urls:
+            video_paths.append(__download_video(video.get("url")))
 
-        post_data.post_video_files = video_paths
-        return post_data
+    post.post_video_files = video_paths
+
+    return post
 
 
 class RequestHandler:

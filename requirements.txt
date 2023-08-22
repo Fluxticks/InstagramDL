@@ -1,3 +1,1 @@
 playwright
-bs4
-lxml
