@@ -184,7 +184,7 @@ async def get_info(
     video_paths = []
     if download_videos:
         for video in post.post_video_urls:
-            video_paths.append(__download_video(video.get("url")))
+            video_paths.append(__download_video(video))
 
     post.post_video_files = video_paths
 
