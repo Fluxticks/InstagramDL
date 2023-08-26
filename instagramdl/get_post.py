@@ -78,11 +78,11 @@ def __parse_post_data(post_info: dict) -> InstagramPost:
         case PostType.SLIDES:
             post_image_urls, post_video_urls = __get_slideshow_content(post_info)
         case PostType.REEL:
-            post_image_urls = None
+            post_image_urls = []
             post_video_urls = __get_video_content(post_info)
         case PostType.IMAGE:
             post_image_urls = __get_image_content(post_info)
-            post_video_urls = None
+            post_video_urls = []
 
     post_info = InstagramPost(
         author_username=author_username,
