@@ -47,11 +47,11 @@ def __get_video_content(post_info: dict) -> list[str]:
 
 def __get_post_type(typename: str):
     match typename:
-        case "GraphSidecar":
+        case "XDTGraphSidecar":
             return PostType.SLIDES
-        case "GraphVideo":
+        case "XDTGraphVideo":
             return PostType.REEL
-        case "GraphImage":
+        case "XDTGraphImage":
             return PostType.IMAGE
 
 
@@ -147,10 +147,10 @@ async def __get_info(
         await post_page.goto(url)
 
         try:
-            async with post_page.expect_response(lambda x: "/graphql/query/" in x.url, timeout=timeout) as response:
+            async with post_page.expect_response(lambda x: "/api/graphql" in x.url, timeout=timeout) as response:
                 response = await response.value
                 data = await response.json()
-                return data.get("data").get("shortcode_media")
+                return data.get("data").get("xdt_shortcode_media")
         except PlaywrightTimeout:
             return None
 
