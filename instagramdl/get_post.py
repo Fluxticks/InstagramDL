@@ -66,7 +66,12 @@ def __parse_post_data(post_info: dict) -> InstagramPost:
 
     post_url = f"https://www.instagram.com/p/{post_info.get('shortcode')}/"
 
-    post_description = post_info.get("edge_media_to_caption").get("edges")[0].get("node").get("text")
+    description_data = post_info.get("edge_media_to_caption").get("edges")
+    if not description_data:
+        post_description = ""
+    else:
+        post_description = description_data[0].get("node").get("text")
+    
     post_timestamp_string = post_info.get("taken_at_timestamp")
     post_timestamp = datetime.fromtimestamp(float(post_timestamp_string))
 
