@@ -181,6 +181,15 @@ def parse_post(api_response: Dict) -> Post:
 
 
 def parse_api_response(api_response: Dict, ignore_media: bool = False) -> Post:
+    """Parse an API response and get all related URLs for any media in the post. If media URLs are not needed, set the `ignore_media` flag to `True`.
+
+    Args:
+        api_response (Dict): The API data to parse.
+        ignore_media (bool, optional): If the media URLs are not required, set to True. Defaults to False.
+
+    Returns:
+        Post: If `ignore_media` is set, returns a generic Post object. Else returns one of `VideoPost`, `ImagePost`, or `MultiPost` based on the API response content.
+    """
     response_data = api_response.get("data").get("xdt_shortcode_media")
     post = parse_post(response_data)
     if ignore_media:
