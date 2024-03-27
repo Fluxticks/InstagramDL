@@ -14,6 +14,15 @@ __all__ = ["parse_user", "parse_post", "parse_api_response"]
 
 
 def __parse_video_post(base_post: Post, api_response: Dict) -> VideoPost:
+    """Parse the video specifc parts of an API response. Requires the generic post to already be parsed.
+
+    Args:
+        base_post (Post): The generic post data already parsed.
+        api_response (Dict): The rest of the API data.
+
+    Returns:
+        VideoPost: A VideoPost object containing the information regarding a video post.
+    """
     has_audio = api_response.get("has_audio", False)
     video_url = api_response.get("video_url")
     play_count = api_response.get("video_play_count", 0)
