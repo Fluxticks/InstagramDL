@@ -85,6 +85,15 @@ def __parse_multi_post(base_post: Post, api_response: Dict) -> MultiPost:
 
 
 def parse_user(api_response: Dict, is_root_user: bool = True) -> User:
+    """Parse the User/Owner information from an API response dictionary. Parses the user data as well as the related profiles data.
+
+    Args:
+        api_response (Dict): The API data to parse.
+        is_root_user (bool, optional): If the data to parse is the post user. Set to false to parse related profile user data. Defaults to True.
+
+    Returns:
+        User: A User object containing the user data and the related profiles.
+    """
     if is_root_user:
         user_info = api_response.get("owner")
     else:
