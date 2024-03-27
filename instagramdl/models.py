@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import List, Optional, Union
 
 
@@ -13,3 +14,37 @@ class User:
     follower_count: int
     post_count: int
     related_profiles: Optional[List["User"]] = None
+
+
+class PostKind(StrEnum):
+    VIDEO = "XDTGraphVideo"
+    IMAGE = "XDTGraphImage"
+    MULTI = "XDTGraphSidecar"
+
+    @staticmethod
+    def from_str(input: str) -> "PostKind":
+        if input == PostKind.VIDEO:
+            return PostKind.VIDEO
+
+        if input == PostKind.IMAGE:
+            return PostKind.IMAGE
+
+        if input == PostKind.MULTI:
+            return PostKind.MULTI
+
+        raise ValueError(f"{input} is not a valid PostKind string!")
+
+
+@dataclass()
+class Post:
+    id: int
+    shortcode: str
+    kind: PostKind
+    thumbnail_url: str
+    width: int
+    height: int
+    user: User
+    caption: str
+    timestamp: int
+    like_count: int
+    comment_count: int
