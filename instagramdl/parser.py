@@ -62,6 +62,15 @@ def __parse_image_post(base_post: Post, api_response: Dict) -> ImagePost:
 
 
 def __parse_multi_post(base_post: Post, api_response: Dict) -> MultiPost:
+    """Parse the multimedia post specific parts of an API response. Requires the generic post data to already be parsed.
+
+    Args:
+        base_post (Post): The generic post data already parsed.
+        api_response (Dict): The rest of the API data to parse.
+
+    Returns:
+        MultiPost: A MultiPost object containing a list of ImagePost and VideoPost objects with information regarding the multimedia post.
+    """
     items = api_response.get("edge_sidecar_to_children").get("edges")
     parsed_items = []
     for item in items:
