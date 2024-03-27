@@ -79,3 +79,7 @@ def download_media(
     if post.kind == PostKind.IMAGE:
         url = post.image_url
         return __download_file(url, download_location, max_chunk_size)
+
+    if post.kind == PostKind.VIDEO:
+        url = post.video_url
+        return __download_file(url, download_location, max_chunk_size)
