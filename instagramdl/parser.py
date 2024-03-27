@@ -132,6 +132,14 @@ def parse_user(api_response: Dict, is_root_user: bool = True) -> User:
 
 
 def parse_post(api_response: Dict) -> Post:
+    """Parse the generic post data from an API response. Does not get any media data/urls.
+
+    Args:
+        api_response (Dict): The API data to parse.
+
+    Returns:
+        Post: A Post object containing basic information about the parsed API data.
+    """
     post_id = api_response.get("id")
     post_kind = PostKind.from_str(api_response.get("__typename"))
     shortcode = api_response.get("shortcode")
