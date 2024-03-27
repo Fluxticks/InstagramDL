@@ -22,7 +22,15 @@ def make_random_string(count: int) -> str:
     return current
 
 
-def do_request(post_url: str) -> Dict:
+def get_post_data(post_url: str) -> Dict:
+    """Get the all the data about a given Instagram post.
+
+    Args:
+        post_url (str): The URL to get the data from.
+
+    Returns:
+        Dict: The raw data returned from the API request.
+    """
     headers = {
         "User-Agent": make_random_string(10),
         "Accept": "*/*",
