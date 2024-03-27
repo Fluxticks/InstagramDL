@@ -14,11 +14,11 @@ __all__ = ["parse_user", "parse_post", "parse_api_response"]
 
 
 def __parse_video_post(base_post: Post, api_response: Dict) -> VideoPost:
-    """Parse the video specifc parts of an API response. Requires the generic post to already be parsed.
+    """Parse the video post specifc parts of an API response. Requires the generic post to already be parsed.
 
     Args:
         base_post (Post): The generic post data already parsed.
-        api_response (Dict): The rest of the API data.
+        api_response (Dict): The rest of the API data to be parse.
 
     Returns:
         VideoPost: A VideoPost object containing the information regarding a video post.
@@ -40,6 +40,15 @@ def __parse_video_post(base_post: Post, api_response: Dict) -> VideoPost:
 
 
 def __parse_image_post(base_post: Post, api_response: Dict) -> ImagePost:
+    """Parse the image post specific parts of an API response. Requires the generic post data to already be parsed.
+
+    Args:
+        base_post (Post): The generic post data already parsed.
+        api_response (Dict): The rest of the API data to parse.
+
+    Returns:
+        ImagePost: An ImagePost object containing the information regarding an image post.
+    """
     url = api_response.get("display_url")
     alt_urls = [x.get("src") for x in api_response.get("display_resources")]
     accessibility_caption = api_response.get("accessibility_caption")
