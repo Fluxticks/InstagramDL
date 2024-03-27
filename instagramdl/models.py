@@ -48,3 +48,24 @@ class Post:
     timestamp: int
     like_count: int
     comment_count: int
+
+
+@dataclass()
+class VideoPost(Post):
+    has_audio: bool
+    video_url: str
+    play_count: int
+    view_count: int
+    duration: float
+
+
+@dataclass()
+class ImagePost(Post):
+    image_url: str
+    alt_urls: List[str]
+    accessibility_caption: str
+
+
+@dataclass()
+class MultiPost(Post):
+    items: List[Union[ImagePost, VideoPost]]
