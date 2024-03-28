@@ -61,7 +61,17 @@ def get_post_data(post_url: str) -> Dict:
     return response.json()
 
 
-def download_file(url: str, download_location: str, max_chunk_size: int):
+def download_file(url: str, download_location: str, max_chunk_size: int) -> str:
+    """A simple helper function to retrive a file from a URL.
+
+    Args:
+        url (str): The URL to retrieve the file from.
+        download_location (str): The path to download the file to.
+        max_chunk_size (int): The maximum chunk size to use.
+
+    Returns:
+        str: The filepath of the downloaded file.
+    """
     filename = urlparse(url).path.split("/")[-1]
     filepath = f"{download_location}{PATHSEP}{filename}"
     with requests.get(url, stream=True) as r:
