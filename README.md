@@ -2,16 +2,12 @@
 
 A python package to download Instagram posts by URL without needing to login.
 
-## TODO
-
-- Upload package to PyPI
-
 ## Usage
 
 1. Install the package
 
 ```bash
-$ pip install git+https://github.com/Fluxticks/InstagramDL.git
+$ pip install instagram-dlpy
 ```
 
 2. Import the package
