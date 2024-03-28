@@ -1,3 +1,5 @@
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/instagram-dlpy)
+
 # InstagramDL
 
 A python package to download Instagram posts by URL without needing to login.
