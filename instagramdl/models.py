@@ -51,7 +51,22 @@ class Post:
     like_count: int
     comment_count: int
 
-    def download(self, download_path: str, max_chunk_size: int = 8192) -> Any:
+    def download(
+        self, download_path: str, max_chunk_size: int = 8192
+    ) -> Union[str, List[str]]:
+        """Downloads any media related to a post. Cannot be used on the generic `Post` class as it has no associated media.
+
+        Args:
+            download_path (str): The path to download the files to.
+            max_chunk_size (int, optional): The maximum chunk size to use while downloading. Defaults to 8192.
+
+        Raises:
+            ValueError: If called on the generic `Post` class.
+            HTTPError: If an error occurs during file downloading.
+
+        Returns:
+            Union[str, List[str]]: If a single file, the download file path. Else a list of filepaths for all the associated files.
+        """
         raise ValueError(
             "Method not implemented! Generic posts do not have media to download."
         )
