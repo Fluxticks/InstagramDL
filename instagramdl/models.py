@@ -1,12 +1,14 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Union
 
 from instagramdl.api import download_file
 
 
 @dataclass()
 class User:
+    """A class that represents an instagram user."""
+
     id: int
     username: str
     is_verified: bool
@@ -19,6 +21,8 @@ class User:
 
 
 class PostKind(StrEnum):
+    """A string enum to store the Instagram string representations of the different post types."""
+
     VIDEO = "XDTGraphVideo"
     IMAGE = "XDTGraphImage"
     MULTI = "XDTGraphSidecar"
@@ -39,6 +43,8 @@ class PostKind(StrEnum):
 
 @dataclass()
 class Post:
+    """A class that represent a generic post. Is the superclass of all other Post type classes."""
+
     id: int
     shortcode: str
     kind: PostKind
@@ -74,6 +80,8 @@ class Post:
 
 @dataclass()
 class VideoPost(Post):
+    """A class to represent a post that contains a single video."""
+
     has_audio: bool
     video_url: str
     play_count: int
@@ -86,6 +94,8 @@ class VideoPost(Post):
 
 @dataclass()
 class ImagePost(Post):
+    """A class to represent a post that contains a single image."""
+
     image_url: str
     alt_urls: List[str]
     accessibility_caption: str
@@ -96,6 +106,8 @@ class ImagePost(Post):
 
 @dataclass()
 class MultiPost(Post):
+    """A class to represent a post that has more than one image or video. Can contain a mix of both media types."""
+
     items: List[Union[ImagePost, VideoPost]]
 
     def download(self, download_path: str, max_chunk_size: int = 8192) -> List[str]:
