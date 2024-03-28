@@ -1,10 +1,9 @@
 import requests
 from os.path import sep as PATHSEP
 from random import randint
-from typing import Dict, List, Union
+from typing import Dict
 from urllib.parse import urlparse
 
-from instagramdl.models import Post, PostKind
 
 MAGIC_DOC_NUMBER = 7341532402634560  # Required value by instagram.
 INSTA_API_URL = "https://www.instagram.com/api/graphql"
@@ -62,7 +61,7 @@ def get_post_data(post_url: str) -> Dict:
     return response.json()
 
 
-def __download_file(url: str, download_location: str, max_chunk_size: int):
+def download_file(url: str, download_location: str, max_chunk_size: int):
     filename = urlparse(url).path.split("/")[-1]
     filepath = f"{download_location}{PATHSEP}{filename}"
     with requests.get(url, stream=True) as r:
@@ -71,15 +70,3 @@ def __download_file(url: str, download_location: str, max_chunk_size: int):
             for chunk in r.iter_content(chunk_size=max_chunk_size):
                 f.write(chunk)
     return filepath
-
-
-def download_media(
-    post: Post, download_location: str, max_chunk_size: int = 8192
-) -> Union[str, List[str]]:
-    if post.kind == PostKind.IMAGE:
-        url = post.image_url
-        return __download_file(url, download_location, max_chunk_size)
-
-    if post.kind == PostKind.VIDEO:
-        url = post.video_url
-        return __download_file(url, download_location, max_chunk_size)

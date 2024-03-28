@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
+
+from instagramdl.api import download_file
 
 
 @dataclass()
@@ -49,6 +51,11 @@ class Post:
     like_count: int
     comment_count: int
 
+    def download(self, download_path: str, max_chunk_size: int = 8192) -> Any:
+        raise ValueError(
+            "Method not implemented! Generic posts do not have media to download."
+        )
+
 
 @dataclass()
 class VideoPost(Post):
@@ -58,6 +65,9 @@ class VideoPost(Post):
     view_count: int
     duration: float
 
+    def download(self, download_path: str, max_chunk_size: int = 8192) -> str:
+        return download_file(self.video_url, download_path, max_chunk_size)
+
 
 @dataclass()
 class ImagePost(Post):
@@ -65,7 +75,16 @@ class ImagePost(Post):
     alt_urls: List[str]
     accessibility_caption: str
 
+    def download(self, download_path: str, max_chunk_size: int = 8192) -> str:
+        return download_file(self.image_url, download_path, max_chunk_size)
+
 
 @dataclass()
 class MultiPost(Post):
     items: List[Union[ImagePost, VideoPost]]
+
+    def download(self, download_path: str, max_chunk_size: int = 8192) -> List[str]:
+        downloads = []
+        for item in self.items:
+            downloads.append(item.download(download_path, max_chunk_size))
+        return downloads
