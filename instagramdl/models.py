@@ -19,6 +19,15 @@ class User:
     post_count: int
     related_profiles: Optional[List["User"]] = None
 
+    @property
+    def url(self) -> str:
+        """The users actual URL.
+
+        Returns:
+            str: The URL of the user.
+        """
+        return f"https://www.instagram.com/{self.username}"
+
 
 class PostKind(StrEnum):
     """A string enum to store the Instagram string representations of the different post types."""
@@ -56,6 +65,15 @@ class Post:
     timestamp: int
     like_count: int
     comment_count: int
+
+    @property
+    def url(self) -> str:
+        """The actual URL of the post.
+
+        Returns:
+            str: The post URL
+        """
+        return f"https://www.instagram.com/p/{self.shortcode}"
 
     def download(
         self, download_path: str, max_chunk_size: int = 8192
