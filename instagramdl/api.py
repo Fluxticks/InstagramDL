@@ -34,18 +34,21 @@ def get_post_data(post_url: str) -> Dict:
     Returns:
         Dict: The raw data returned from the API request.
     """
+    parsed_url = urlparse(post_url)
+    url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+
     headers = {
         "User-Agent": make_random_string(10),
         "Accept": "*/*",
         "Accept-Language": "en-US,en;q=0.5",
-        "Referer": post_url,
+        "Referer": url,
         "Content-Type": "application/x-www-form-urlencoded",
         "Origin": "https://www.instagram.com",
         "Sec-Fetch-Site": "same-origin",
     }
 
-    parts = post_url.split("/")
-    if post_url.endswith("/"):
+    parts = url.split("/")
+    if url.endswith("/"):
         short_code = parts[-2]
     else:
         short_code = parts[-1]
