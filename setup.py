@@ -7,9 +7,9 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="instagram-dlpy",
-    version="1.1.0",
+    version="1.2.0",
     url="https://github.com/Fluxticks/InstagramDL",
-    download_url="https://github.com/Fluxticks/InstagramDL/archive/v1.1.0.tar.gz",
+    download_url="https://github.com/Fluxticks/InstagramDL/archive/v1.2.0.tar.gz",
     author="Fluxticks",
     packages=find_packages(),
     install_requires=["requests"],
