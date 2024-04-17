@@ -3,7 +3,7 @@ from dataclasses import dataclass
 try:
     from enum import StrEnum
 except ImportError:
-    from strenum import StrEnum
+    from strenum import StrEnum  # type: ignore
 
 from typing import List, Optional, Union
 
