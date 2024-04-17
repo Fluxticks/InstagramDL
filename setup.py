@@ -13,6 +13,11 @@ setup(
     author="Fluxticks",
     packages=find_packages(),
     install_requires=["requests"],
+    extras_require={
+        ':python_version < "3.11"': [
+            "StrEnum",
+        ],
+    },
     long_description=long_description,
     long_description_content_type="text/markdown",
     description="A python package to download Instagram posts by URL without needing to login",
@@ -23,6 +28,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     keywords=["instagram", "api"],
 )

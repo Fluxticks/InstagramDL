@@ -1,5 +1,10 @@
 from dataclasses import dataclass
-from enum import StrEnum
+
+try:
+    from enum import StrEnum
+except ImportError:
+    from strenum import StrEnum
+
 from typing import List, Optional, Union
 
 from instagramdl.api import download_file
