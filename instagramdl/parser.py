@@ -154,12 +154,11 @@ def parse_post(api_response: Dict) -> Post:
     comment_count = api_response.get("edge_media_to_comment").get("count")
     like_count = api_response.get("edge_media_preview_like").get("count")
 
-    post_caption = (
-        api_response.get("edge_media_to_caption")
-        .get("edges")[0]
-        .get("node")
-        .get("text")
-    )
+    caption_data = api_response.get("edge_media_to_caption").get("edges")
+    if caption_data:
+        post_caption = caption_data[0].get("node").get("text")
+    else:
+        post_caption = ""
 
     timestamp = api_response.get("taken_at_timestamp")
 
